@@ -1,0 +1,32 @@
+<%- include ("header.ejs") %>
+<main>
+    <table>
+        <tr>
+            <td>PHASE 1: </td><td></td>
+            <td> <%= item.phase1_duration %> </td>
+        </tr>
+        <tr>
+            <td>PHASE 2: </td><td></td>
+            <td> <%= item.phase2_duration %> </td>
+        </tr>
+        <tr>
+            <td>PHASE 3: </td><td></td>
+            <td> <%= item.phase3_duration %> </td>
+        </tr>
+        <tr>
+            <td>PHASE 4: </td><td></td>
+            <td> <%= item.phase4_duration %> </td>
+        </tr>
+        <tr></tr>
+        <tr>
+            <tr>
+                <td>
+                <form action = "/R/Edit" method="get">
+                    <input type = "hidden" name="id" value = <% item._id %>
+                    <button>EDIT</button>
+                </form>
+            </td>
+        </tr>
+    </table>
+</main>
+<%- include ("footer.ejs") %>
