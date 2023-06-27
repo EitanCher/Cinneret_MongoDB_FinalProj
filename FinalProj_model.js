@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
 const dataSchema = new mongoose.Schema({
+    line_number: {
+        required: true,
+        type: Number
+    },
     phase1_duration: {
         required: true,
         type: Number,
