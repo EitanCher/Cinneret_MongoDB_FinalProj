@@ -2,52 +2,44 @@ const express = require("express");
 const router = express.Router();
 module.exports = router;
 
-const itemModel = require("../models/modelItem");
-const categModel = require("../models/modelCategories");
+const phaseModel = require("./FinalProj_model");
 
-router.get('/Add', async(req, res) => {
-    let cat_data = await categModel.find();
-    res.render("ItemAdd", {pageTitle: "Add Item", 
-        allCats: cat_data, 
-        item: {}});
-});
-
-router.post('/Add', (req, res) => { 
-    if (req.body.newCat !== "") {
-        const catData = new categModel({categoryName: req.body.newCat});
-        catData.save();
-        res.redirect("/I/Add");
-    } else {
-        const modelData = new itemModel({
-            itemName: req.body.shop_item,
-            category: req.body.category
-        });
-        modelData.save();
-        //res.redirect("/I/List");
-        res.send('Saved');
-    }
-});
-/*
 router.get('/List', async (req, res) => {
-    let cat_data = await itemModel.find();
-    res.render("CategoryList", {pageTitle: "Categories Management", data: cat_data});
+    let phase_data = await phaseModel.find();
+    res.render("FinalProj_List", {pageTitle: "Phases Management", data: phase_data});
 });
 
 router.get('/Edit', async (req, res) => {
-    let item_data = await itemModel.findById(req.query.id);
-    res.render("CategoryAdd", {pageTitle: "Edit Category", item: item_data});
+    let phase_data = await phaseModel.findById(req.query.id);
+    res.render("FinalProj_Edit", {pageTitle: "Edit Phase Duration", item: phase_data});
 });
 
-router.post('/Edit',async (req, res) => {
-    const modelData = {categoryName:req.body.categoryName};
-    let item_data = await itemModel.findByIdAndUpdate(req.query.id, modelData);
-    res.redirect("/I/List");
+router.post('/Edit', async (req, res) => {
+    const modelData = {
+        phase1_duration: req.body.Phase1,
+        phase2_duration: req.body.Phase2,
+        phase3_duration: req.body.Phase3,
+        phase4_duration: req.body.Phase4
+    };
+    let phase_data = await phaseModel.findByIdAndUpdate(req.query.id, modelData);
+    res.redirect("/R/List");
 });
 
-router.post('/Delete', async (req, res) => {
-    let item_data = await itemModel.findByIdAndDelete(req.body.id);
-    res.redirect("/I/List");
-});
+//--- Define endpoint for the API: ------------
+router.get('/R/:phase', async (req, res) => {
+    // Get the "phase" parameter from the URL (as appears in the line above: .../R/phaseN_duration)
+    const myPhase = req.params.phase;
+    
+    // Query the collection for the specific document:
+    // Find a line ("document") #1 - the only one line in the table.
+    // In a more complicated scenario, line_number to be set dynamically.
+    // Fetch only the duration value of the required Phase:
+    const document = await phaseModel.findOne({ line_number: 1 }, myPhase);
 
-*/
-
+    // Extract the desired field value from the Mongo document (line).
+    // If not found, default value will be "2".
+    const fieldValue = document ? document.fieldName : 2;
+       
+    // Return the response as a single value (integer)
+    res.send(fieldValue);
+  });
