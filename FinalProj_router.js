@@ -5,8 +5,10 @@ module.exports = router;
 const phaseModel = require("./FinalProj_model");
 
 router.get('/List', async (req, res) => {
-    let phase_data = await phaseModel.find();
-    res.render("FinalProj_List", {pageTitle: "Phases Management", data: phase_data});
+    //let phase_data = await phaseModel.find();
+    //res.render("FinalProj_List", {pageTitle: "Phases Management", data: phase_data});
+    let phase_data = await phaseModel.findOne({ line_number: 1 });
+    res.render("FinalProj_List", {pageTitle: "Phases Management", item: phase_data});
 });
 
 router.get('/Edit', async (req, res) => {
@@ -21,6 +23,7 @@ router.post('/Edit', async (req, res) => {
         phase3_duration: req.body.Phase3,
         phase4_duration: req.body.Phase4
     };
+
     let phase_data = await phaseModel.findByIdAndUpdate(req.query.id, modelData);
     res.redirect("/R/List");
 });
