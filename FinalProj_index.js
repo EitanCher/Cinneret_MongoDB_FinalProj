@@ -25,13 +25,10 @@ database.once('connected', () => {
     console.log('Database Connected');
 })
 
-//--- Connecting routers ------------------------
-const rooms_rtr = require('./routers/routRoom');
-app.use('/R', rooms_rtr);
-const calls_rtr = require('./routers/routCalls');
-app.use('/C', calls_rtr);
-const api_rtr = require('./routers/routAPI');
-app.use('/API', api_rtr);
+//--- Connecting router ------------------------
+const phases_rtr = require('./FinalProj_router');
+app.use('/R', phases_rtr);
+
 //------------------------------------------------
 app.listen(port, () => {            //server starts listening for any attempts from a client to connect at port: {port}
     console.log(`Now listening on port ${port}`);
