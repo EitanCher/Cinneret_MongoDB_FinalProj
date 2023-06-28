@@ -1,26 +1,15 @@
 const mongoose = require("mongoose");
 
 const dataSchema = new mongoose.Schema({
-    line_number: {
+    phase_number: {
         required: true,
         type: Number
     },
-    phase1_duration: {
+    phase_name: {
         required: true,
-        type: Number/*,
-        min: 2*/
+        type: String
     },
-    phase2_duration: {
-        required: true,
-        type: Number/*,
-        min: 2*/
-    },
-    phase3_duration: {
-        required: true,
-        type: Number/*,
-        min: 2*/
-    },
-    phase4_duration: {
+    phase_duration: {
         required: true,
         type: Number/*,
         min: 2*/
