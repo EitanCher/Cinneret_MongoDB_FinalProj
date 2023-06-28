@@ -16,14 +16,35 @@ router.get('/Edit', async (req, res) => {
 
 router.post('/Edit', async (req, res) => {
     const modelData = {
-        phase_number: req.body.phaseNum,
-        phase_name: req.body.phaseName,
+        phase_number:   req.body.phaseNum,
+        phase_name:     req.body.phaseName,
         phase_duration: req.body.phaseDuration
     };
 
     let phase_data = await phaseModel.findByIdAndUpdate(req.query.id, modelData);
     res.redirect("/R/List");
 });
+
+router.post('/Delete',async (req, res) => {
+    let item_data = await phaseModel.findByIdAndDelete(req.body.id);
+    res.redirect("/R/List");
+});
+
+router.get('/Add', (req, res) => {
+    res.render("FinalProj_Edit", {pageTitle: "Add Phase", item:{} });
+});
+
+router.post('/Add',(req, res) => {
+    const modelData = new phaseModel({
+        phase_number:   req.body.phaseNum,
+        phase_name:     req.body.phaseName,
+        phase_duration: req.body.phaseDuration
+    });
+    modelData.save();
+    // res.send('Saved ');
+    res.redirect("/R/List");
+});
+
 
 //--- Define endpoint for the API: ------------
 router.get('/R/:phase', async (req, res) => {
