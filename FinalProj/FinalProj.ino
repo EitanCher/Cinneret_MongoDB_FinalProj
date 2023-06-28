@@ -43,7 +43,7 @@ void loop() {
     digitalWrite(pinRelay, LOW);  // Turn the relay on
 
     //Disable current phase, enable next phase (when time off):
-    NextPhase(myVars[CurrentPhase][1], CurrentPhase, NextPhase);
+    NextPhase();
   }
   else {
     digitalWrite(pinRelay, HIGH); // Turn the relay off
@@ -68,7 +68,7 @@ void loop() {
     }
 
     //Disable current phase, enable next phase (when time off):
-    NextPhase(myVars[CurrentPhase][1], CurrentPhase, NextPhase);
+    NextPhase();
   }
 
   // Phase 3 ======================================================
@@ -80,7 +80,7 @@ void loop() {
     ph3_output = map(ph2_avg, 0, 1023, 0, 255); // Provide a PWM value for external device
 
     //Disable current phase, enable next phase (when time off):
-    NextPhase(myVars[CurrentPhase][1], CurrentPhase, NextPhase);
+    NextPhase();
   }
 
   // Phase 4 ======================================================
@@ -97,14 +97,14 @@ void loop() {
     ph3_output = 0;
 
     //Disable current phase, enable next phase (when time off):
-    NextPhase(myVars[CurrentPhase][1], CurrentPhase, NextPhase);
+    NextPhase();
   }
 }
 
-void NextPhase(short duration, short current, short next){
-  if (millis() - myTimer >= (duration * 1000) {
-    MyVars[current][0] = 0;
-    MyVars[next][0] = 1;
+void NextPhase(){
+  if (millis() - myTimer >= (myVars[CurrentPhase][1] * 1000) {
+    MyVars[CurrentPhase][0] = 0;
+    MyVars[NextPhase][0] = 1;
     myTimer = millis();
   }
 }
