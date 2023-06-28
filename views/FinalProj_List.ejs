@@ -21,13 +21,20 @@
                 </td>
                 <td>
                     <form action="/R/Delete" method="post"
-                        onsubmit="return confirm('Confirm deletion of phase');return false;">
+                        onsubmit="return confirm('Confirm deletion of phase'); return false;">
                         <input type="hidden" name="id" value="<%= item._id %>">
                         <button>DELETE PHASE</button>
                     </form>
                 </td>
             </tr>
         <% } %>
+        <tr>
+            <td colspan="100">
+                <form action="/R/Add" method="get">
+                    <button>ADD PHASE</button>
+                </form>
+            </td>
+        </tr>
     </table>
 </main>
 <%- include ("footer.ejs") %>
