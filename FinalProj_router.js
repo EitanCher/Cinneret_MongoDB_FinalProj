@@ -5,10 +5,8 @@ module.exports = router;
 const phaseModel = require("./FinalProj_model");
 
 router.get('/List', async (req, res) => {
-    //let phase_data = await phaseModel.find();
-    //res.render("FinalProj_List", {pageTitle: "Phases Management", data: phase_data});
-    let phase_data = await phaseModel.findOne({ line_number: 1 });
-    res.render("FinalProj_List", {pageTitle: "Phases Management", item: phase_data});
+    let phase_data = await phaseModel.find();
+    res.render("FinalProj_List", {pageTitle: "Phases Management", data: phase_data});
 });
 
 router.get('/Edit', async (req, res) => {
@@ -18,10 +16,9 @@ router.get('/Edit', async (req, res) => {
 
 router.post('/Edit', async (req, res) => {
     const modelData = {
-        phase1_duration: req.body.Phase1,
-        phase2_duration: req.body.Phase2,
-        phase3_duration: req.body.Phase3,
-        phase4_duration: req.body.Phase4
+        phase_number: req.body.phNumber,
+        phase_name: req.body.phName,
+        phase_duration: req.body.phDuration
     };
 
     let phase_data = await phaseModel.findByIdAndUpdate(req.query.id, modelData);
@@ -30,19 +27,19 @@ router.post('/Edit', async (req, res) => {
 
 //--- Define endpoint for the API: ------------
 router.get('/R/:phase', async (req, res) => {
-    // Get the "phase" parameter from the URL (as appears in the line above: .../R/phaseN_duration)
+    // Get the "phase" parameter from the URL (as appears in the line above: .../R/<phase number>)
     const myPhase = req.params.phase;
     
     // Query the collection for the specific document:
     // Find a line ("document") #1 - the only one line in the table.
     // In a more complicated scenario, line_number to be set dynamically.
     // Fetch only the duration value of the required Phase:
-    const document = await phaseModel.findOne({ line_number: 1 }, myPhase);
+    const myDuration = await phaseModel.findOne({ phase_number: myPhase }, "phase_duration");
 
     // Extract the desired field value from the Mongo document (line).
     // If not found, default value will be "2".
-    const fieldValue = document ? document.fieldName : 2;
+    const fieldValue = myDuration ? myDuration.fieldName : 2; // CHECK IF REDUNDANT
        
     // Return the response as a single value (integer)
-    res.send(fieldValue);
+    res.send(fieldValue);    //CHECK: res.send(myDuration);
   });
