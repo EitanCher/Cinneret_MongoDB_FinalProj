@@ -16,9 +16,9 @@ router.get('/Edit', async (req, res) => {
 
 router.post('/Edit', async (req, res) => {
     const modelData = {
-        phase_number: req.body.phNumber,
-        phase_name: req.body.phName,
-        phase_duration: req.body.phDuration
+        phase_number: req.body.phaseNum,
+        phase_name: req.body.phaseName,
+        phase_duration: req.body.phaseDuration
     };
 
     let phase_data = await phaseModel.findByIdAndUpdate(req.query.id, modelData);
