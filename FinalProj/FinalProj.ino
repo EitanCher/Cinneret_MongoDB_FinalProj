@@ -24,8 +24,8 @@ int       ph3_output; // PWM value provided on Phase 3
 
 void setup() {
   pinMode(pinRelay, OUTPUT);  // Relay control pin
-  isPhase1 = true;  // Enable Phase 1 on program start
-  // or: myVars[1][0] = 1;  // Enable Phase 1 on program start
+  //isPhase1 = true;  // Enable Phase 1 on program start
+  myVars[1][0] = 1;  // Enable Phase 1 on program start
   
   Serial.begin(9600);
   Serial.println("Started ...");
