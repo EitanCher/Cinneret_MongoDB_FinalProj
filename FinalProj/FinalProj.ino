@@ -1,92 +1,107 @@
 #define pinRelay D4
 #define pinLDR A0
+#define NumOfPhases 4
+#define MinDuration 2
+const int NP = NumOfPhases + 1;
 
-//bool isPhase1, isPhase2, isPhase3, isPhase4;
-//int phase1_duration, phase2_duration, phase3_duration, phase4_duration;
-
-short NumOfPhases = 4, MinDuration = 2, CurrentPhase, NextPhase;
+int CurrentPhase, NextPhase, tmp_cnt;
+unsigned long TimerPhase, TimerFollowUp, TimerStaff;
+long int ph2_val;  // Light measurement for Phase 2. "Long" for case of long duration of Phase 2.
+double ph2_avg;    // Average of light measurements for Phase 2
+int ph2_cnt;       // Amount of light measurements for Phase 2
+bool tmp_bool, ph2_bool = true;
+int ph3_output;  // PWM value provided on Phase 3
 
 //For each phase: 2 parameters (on/off and duration)
-//Amount is "+1" for better code-readability, ignore the zero
-short MyVars = new short[NumOfPhases + 1][2];  
-for(short i = 1; i <= NumOfPhases; i++) {
-  myVars[i][0] = 0;  // Phase off
-  myVars[i][1] = MinDuration;
-}
-
-unsigned long myTimer = millis();
-
-long int  ph2_val;  // Light measurement for Phase 2. "Long" for case of long duration of Phase 2.
-double    ph2_avg;  // Average of light measurements for Phase 2
-int       ph2_cnt;  // Amount of light measurements for Phase 2
-bool      ph2_bool = true;
-int       ph3_output; // PWM value provided on Phase 3
+//Amount is "NumOfPhases + 1" for better code-readability, ignore the zero
+int MyVars[NP][2];
 
 void setup() {
   pinMode(pinRelay, OUTPUT);  // Relay control pin
-  //isPhase1 = true;  // Enable Phase 1 on program start
-  myVars[1][0] = 1;  // Enable Phase 1 on program start
-  
+
+  for (int i = 1; i <= NumOfPhases; i++) {
+    MyVars[i][0] = 0;  // Phase off
+    MyVars[i][1] = MinDuration;
+  }
+  MyVars[1][0] = 1;  // Enable Phase 1 on program start
+
   Serial.begin(9600);
   Serial.println("Started ...");
 
   wifi_Setup();
+  TimerPhase = millis();
 }
 
 void loop() {
-  // Phase 1 ======================================================
-  if(myVars[1][0] == 1) {  
+  #pragma region PHASE_1
+  
+  if (MyVars[1][0] == 1) {
     //Derive the duration value, set current/next variables:
-    PhaseSettings(1);
+    PhaseSettings(1, 3);
+
+    //Follow up:    
+    FollowUp(1);
 
     //Phase staff:
     digitalWrite(pinRelay, LOW);  // Turn the relay on
 
     //Disable current phase, enable next phase (when time off):
-    NextPhase();
-  }
+    SetNextPhase();
+  } 
   else {
-    digitalWrite(pinRelay, HIGH); // Turn the relay off
+    digitalWrite(pinRelay, HIGH);  // Turn the relay off
   }
-
-  // Phase 2 ======================================================
-  if(myVars[2][0] == 1) {  
+  #pragma endregion
+  #pragma region PHASE_2
+  
+  if (MyVars[2][0] == 1) {
     //Derive the duration value, set current/next variables:
-    PhaseSettings(2);
+    PhaseSettings(2, 4);
+    
+    //Follow up:    
+    FollowUp(2);
 
     //Phase staff:
     if (ph2_bool) {
-      ph2_val = ph2_val + analogRead(pinLDR); // Perform measurement, add its value to the sum of previous measurements
-      ph2_avg = ph2_val / ++ph2_cnt;          // Calculate the average
-      ph2_bool = false; // Avoid measurements until "true" again
-    }
+      ph2_val = ph2_val + analogRead(pinLDR);  // Perform measurement, add its value to the sum of previous measurements
+      ph2_avg = ph2_val / ++ph2_cnt;           // Calculate the average
+      ph2_bool = false;                        // Avoid measurements until "true" again
+    } 
     else {
-      if (millis() - myTimer >= 1000) {
-        ph2_bool = true;    // Allow next measurement only 1 second after the previous one.
-        myTimer = millis(); // Reset timer
+      if (millis() - TimerStaff >= 1000) {
+        ph2_bool = true;     // Allow next measurement only 1 second after the previous one.
+        TimerStaff = millis();  // Reset timer
       }
     }
 
     //Disable current phase, enable next phase (when time off):
-    NextPhase();
+    SetNextPhase();
   }
-
-  // Phase 3 ======================================================
-  if(myVars[3][0] == 1) {
+  #pragma endregion
+  #pragma region PHASE_3
+  
+  if (MyVars[3][0] == 1) {
     //Derive the duration value, set current/next variables:
-    PhaseSettings(3);
+    PhaseSettings(3, 3);
+    
+    //Follow up:    
+    FollowUp(3);
 
     //Phase staff:
-    ph3_output = map(ph2_avg, 0, 1023, 0, 255); // Provide a PWM value for external device
+    ph3_output = map(ph2_avg, 0, 1023, 0, 255);  // Provide a PWM value for external device
 
     //Disable current phase, enable next phase (when time off):
-    NextPhase();
+    SetNextPhase();
   }
-
-  // Phase 4 ======================================================
-  if(myVars[4][0] == 1) {
+  #pragma endregion
+  #pragma region PHASE_4
+  
+  if (MyVars[4][0] == 1) {
     //Derive the duration value, set current/next variables:
-    PhaseSettings(4);
+    PhaseSettings(4, 4);
+    
+    //Follow up:    
+    FollowUp(4);
 
     //Phase staff:
     //Reset all the variables before next cicle begins:
@@ -97,20 +112,46 @@ void loop() {
     ph3_output = 0;
 
     //Disable current phase, enable next phase (when time off):
-    NextPhase();
+    SetNextPhase();
   }
+  #pragma endregion
 }
 
-void NextPhase(){
-  if (millis() - myTimer >= (myVars[CurrentPhase][1] * 1000) {
+void SetNextPhase() {
+  if (millis() - TimerPhase >= (MyVars[CurrentPhase][1] * 1000)) {
     MyVars[CurrentPhase][0] = 0;
     MyVars[NextPhase][0] = 1;
-    myTimer = millis();
+    TimerPhase = millis();
+    tmp_cnt = 0;
+    Serial.println("xxxxxxxxxxxxxx");
   }
 }
 
-void PhaseSettings(short MyPhase){
+void PhaseSettings(int MyPhase, int i) {
   CurrentPhase = MyPhase;
-  NextPhase = ++MyPhase;
-  myVars[CurrentPhase][1] = GetDuration(CurrentPhase); 
+  if(CurrentPhase == NumOfPhases)
+    NextPhase = 1;
+  else
+    NextPhase = ++MyPhase;
+  //MyVars[CurrentPhase][1] = GetDuration(CurrentPhase);
+  MyVars[CurrentPhase][1] = i;
 }
+
+void FollowUp(int MyPhase){
+  if(tmp_bool) {
+    if(tmp_cnt == 0) 
+      tmp_cnt = MyVars[MyPhase][1];
+    
+    Serial.print("Phase ");
+    Serial.println(CurrentPhase);
+    Serial.print("Time left: ");
+    Serial.println(tmp_cnt--);
+    TimerFollowUp = millis();
+    tmp_bool = false;
+  }
+
+  if(millis() - TimerFollowUp >= 1000) {
+    tmp_bool = true;
+  }
+}
+
