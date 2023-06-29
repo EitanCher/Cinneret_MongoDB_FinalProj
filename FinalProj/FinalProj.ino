@@ -4,12 +4,12 @@
 #define MinDuration 2
 const int NP = NumOfPhases + 1;
 
-int CurrentPhase, NextPhase, tmp_cnt;
+int CurrentPhase, NextPhase, tmp_cnt, tmp_dur;
 unsigned long TimerPhase, TimerFollowUp, TimerStaff;
 long int ph2_val;  // Light measurement for Phase 2. "Long" for case of long duration of Phase 2.
 double ph2_avg;    // Average of light measurements for Phase 2
 int ph2_cnt;       // Amount of light measurements for Phase 2
-bool tmp_bool, ph2_bool = true;
+bool followup_bool, tmp_bool = true, ph2_bool = true;
 int ph3_output;  // PWM value provided on Phase 3
 
 //For each phase: 2 parameters (on/off and duration)
@@ -37,7 +37,10 @@ void loop() {
   
   if (MyVars[1][0] == 1) {
     //Derive the duration value, set current/next variables:
-    PhaseSettings(1, 3);
+    if(tmp_bool) {
+      PhaseSettings(1);
+      tmp_bool = false;
+    }
 
     //Follow up:    
     FollowUp(1);
@@ -56,7 +59,10 @@ void loop() {
   
   if (MyVars[2][0] == 1) {
     //Derive the duration value, set current/next variables:
-    PhaseSettings(2, 4);
+    if(tmp_bool) {
+      PhaseSettings(2);
+      tmp_bool = false;
+    }
     
     //Follow up:    
     FollowUp(2);
@@ -82,8 +88,10 @@ void loop() {
   
   if (MyVars[3][0] == 1) {
     //Derive the duration value, set current/next variables:
-    PhaseSettings(3, 3);
-    
+    if(tmp_bool) {
+      PhaseSettings(3);
+      tmp_bool = false;
+    }    
     //Follow up:    
     FollowUp(3);
 
@@ -98,8 +106,10 @@ void loop() {
   
   if (MyVars[4][0] == 1) {
     //Derive the duration value, set current/next variables:
-    PhaseSettings(4, 4);
-    
+    if(tmp_bool) {
+      PhaseSettings(4);
+      tmp_bool = false;
+    }    
     //Follow up:    
     FollowUp(4);
 
@@ -121,37 +131,41 @@ void SetNextPhase() {
   if (millis() - TimerPhase >= (MyVars[CurrentPhase][1] * 1000)) {
     MyVars[CurrentPhase][0] = 0;
     MyVars[NextPhase][0] = 1;
-    TimerPhase = millis();
+    tmp_bool = true;
     tmp_cnt = 0;
-    Serial.println("xxxxxxxxxxxxxx");
   }
 }
 
-void PhaseSettings(int MyPhase, int i) {
+void PhaseSettings(int MyPhase) {
   CurrentPhase = MyPhase;
   if(CurrentPhase == NumOfPhases)
     NextPhase = 1;
   else
     NextPhase = ++MyPhase;
-  //MyVars[CurrentPhase][1] = GetDuration(CurrentPhase);
-  MyVars[CurrentPhase][1] = i;
+  
+  tmp_dur = GetDuration(CurrentPhase);
+  if (tmp_dur == -1)
+    MyVars[CurrentPhase][1] = MinDuration;
+  else
+    MyVars[CurrentPhase][1] = tmp_dur;
+
+  TimerPhase = millis();
 }
 
 void FollowUp(int MyPhase){
-  if(tmp_bool) {
+  if(followup_bool) {
     if(tmp_cnt == 0) 
       tmp_cnt = MyVars[MyPhase][1];
     
     Serial.print("Phase ");
-    Serial.println(CurrentPhase);
-    Serial.print("Time left: ");
+    Serial.print(CurrentPhase);
+    Serial.print(" --- Time left: ");
     Serial.println(tmp_cnt--);
     TimerFollowUp = millis();
-    tmp_bool = false;
+    followup_bool = false;
   }
 
   if(millis() - TimerFollowUp >= 1000) {
-    tmp_bool = true;
+    followup_bool = true;
   }
 }
-
