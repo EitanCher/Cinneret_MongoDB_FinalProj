@@ -12,8 +12,9 @@ int ph2_cnt;       // Amount of light measurements for Phase 2
 bool followup_bool, tmp_bool = true, ph2_bool = true;
 int ph3_output;  // PWM value provided on Phase 3
 
-//For each phase: 2 parameters (on/off and duration)
-//Amount is "NumOfPhases + 1" for better code-readability, ignore the zero
+//Dynamic data for each phase (instead of hard-coded variables):
+//Amount of phases (NP) is "NumOfPhases + 1" - for better code-readability
+//Each phase has 2 parameters: (1)on/off (2)duration
 int MyVars[NP][2];
 
 void setup() {
@@ -23,6 +24,7 @@ void setup() {
     MyVars[i][0] = 0;  // Phase off
     MyVars[i][1] = MinDuration;
   }
+  
   MyVars[1][0] = 1;  // Enable Phase 1 on program start
 
   Serial.begin(9600);
@@ -37,10 +39,7 @@ void loop() {
   
   if (MyVars[1][0] == 1) {
     //Derive the duration value, set current/next variables:
-    if(tmp_bool) {
-      PhaseSettings(1);
-      tmp_bool = false;
-    }
+    PhaseSettings(1);
 
     //Follow up:    
     FollowUp(1);
@@ -59,10 +58,7 @@ void loop() {
   
   if (MyVars[2][0] == 1) {
     //Derive the duration value, set current/next variables:
-    if(tmp_bool) {
-      PhaseSettings(2);
-      tmp_bool = false;
-    }
+    PhaseSettings(2);
     
     //Follow up:    
     FollowUp(2);
@@ -88,10 +84,8 @@ void loop() {
   
   if (MyVars[3][0] == 1) {
     //Derive the duration value, set current/next variables:
-    if(tmp_bool) {
-      PhaseSettings(3);
-      tmp_bool = false;
-    }    
+    PhaseSettings(3);
+
     //Follow up:    
     FollowUp(3);
 
@@ -106,10 +100,8 @@ void loop() {
   
   if (MyVars[4][0] == 1) {
     //Derive the duration value, set current/next variables:
-    if(tmp_bool) {
-      PhaseSettings(4);
-      tmp_bool = false;
-    }    
+    PhaseSettings(4);
+
     //Follow up:    
     FollowUp(4);
 
@@ -137,19 +129,23 @@ void SetNextPhase() {
 }
 
 void PhaseSettings(int MyPhase) {
-  CurrentPhase = MyPhase;
-  if(CurrentPhase == NumOfPhases)
-    NextPhase = 1;
-  else
-    NextPhase = ++MyPhase;
-  
-  tmp_dur = GetDuration(CurrentPhase);
-  if (tmp_dur == -1)
-    MyVars[CurrentPhase][1] = MinDuration;
-  else
-    MyVars[CurrentPhase][1] = tmp_dur;
+  if(tmp_bool) {
+    tmp_bool = false;
+    CurrentPhase = MyPhase;
 
-  TimerPhase = millis();
+    if(CurrentPhase == NumOfPhases)
+      NextPhase = 1;
+    else
+      NextPhase = ++MyPhase;
+    
+    tmp_dur = GetDuration(CurrentPhase);
+    if (tmp_dur == -1)
+      MyVars[CurrentPhase][1] = MinDuration;
+    else
+      MyVars[CurrentPhase][1] = tmp_dur;
+
+    TimerPhase = millis();
+  }
 }
 
 void FollowUp(int MyPhase){
