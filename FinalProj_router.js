@@ -11,7 +11,7 @@ router.get('/List', async (req, res) => {
 
 router.get('/Edit', async (req, res) => {
     let phase_data = await phaseModel.findById(req.query.id);
-    res.render("FinalProj_Edit", {pageTitle: "Edit Phase Duration", item: phase_data});
+    res.render("FinalProj_Edit", {pageTitle: "Edit Phase", item: phase_data});
 });
 
 router.post('/Edit', async (req, res) => {
@@ -41,26 +41,24 @@ router.post('/Add',(req, res) => {
         phase_duration: req.body.phaseDuration
     });
     modelData.save();
-    // res.send('Saved ');
     res.redirect("/R/List");
 });
 
 
 //--- Define endpoint for the API: ------------
-router.get('/R/:phase', async (req, res) => {
-    // Get the "phase" parameter from the URL (as appears in the line above: .../R/<phase number>)
+router.get('/:phase', async (req, res) => {
+    // Get the ":phase" parameter from the URL
     const myPhase = req.params.phase;
     
     // Query the collection for the specific document:
-    // Find a line ("document") #1 - the only one line in the table.
-    // In a more complicated scenario, line_number to be set dynamically.
-    // Fetch only the duration value of the required Phase:
-    const myDuration = await phaseModel.findOne({ phase_number: myPhase }, "phase_duration");
+    const myItem = await phaseModel.findOne({ phase_number: myPhase }, 'phase_duration');
 
     // Extract the desired field value from the Mongo document (line).
+    const myValue = myItem.phase_duration;
+
     // If not found, default value will be "2".
-    const fieldValue = myDuration ? myDuration.fieldName : 2; // CHECK IF REDUNDANT
-       
+    const myOutput = myValue ? myValue : 2;
+ 
     // Return the response as a single value (integer)
-    res.send(fieldValue);    //CHECK: res.send(myDuration);
-  });
+    res.send(myOutput.toString());
+});
