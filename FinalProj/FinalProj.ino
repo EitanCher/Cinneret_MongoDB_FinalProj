@@ -1,4 +1,5 @@
 #define pinRelay D4
+#define pinSophisticatedDevice D5
 #define pinLDR A0
 #define NumOfPhases 4
 #define MinDuration 2
@@ -19,6 +20,7 @@ int MyVars[NP][2];
 
 void setup() {
   pinMode(pinRelay, OUTPUT);  // Relay control pin
+  pinMode(pinSophisticatedDevice, OUTPUT);  // Output device on  phase 3
 
   for (int i = 1; i <= NumOfPhases; i++) {
     MyVars[i][0] = 0;  // Phase off
@@ -91,6 +93,7 @@ void loop() {
 
     //Phase staff:
     ph3_output = map(ph2_avg, 0, 1023, 0, 255);  // Provide a PWM value for external device
+    analogWrite(pinSophisticatedDevice, ph3_output);  // Set the duty cycle for the "sophisticated device "
 
     //Disable current phase, enable next phase (when time off):
     SetNextPhase();
@@ -146,6 +149,7 @@ void PhaseSettings(int MyPhase) {
 
     TimerPhase = millis();
   }
+
 }
 
 void FollowUp(int MyPhase){
